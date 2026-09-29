@@ -5,7 +5,7 @@ Pixel-perfect, 1:1 replica of the **DIASYS Netmation SCADA** system with a coupl
 **H25 (C32 model) Gas Turbine Generator — UNIT-20**.
 
 Zero-dependency — just open `index.html` in any modern browser.
-Live demo via GitHub Pages: `https://<username>.github.io/<repo>/`
+Live demo via GitHub Pages: `https://github.com/x1819197-web/h25-scada-simulator`
 
 ## Run locally
 
