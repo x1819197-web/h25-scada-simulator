@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H25 GAS TURBINE GENERATOR — UNIT-20 | DIASYS Netmation SCADA Simulator</title>
+<style>
+:root{
+  --bg:#C0C0C0; --bg2:#D4D0C8; --navy:#000080; --panel:#2B3E50; --panel2:#3A526A;
+  --lime:#00FF00; --red:#FF0000; --amber:#FFFF00; --orange:#FFA500; --cyan:#00FFFF;
+  --bezel-hi:#FFFFFF; --bezel-lo:#808080;
+}
+*{box-sizing:border-box; font-family:"MS Sans Serif",Tahoma,Verdana,Arial,sans-serif;}
+html,body{margin:0;padding:0;background:var(--bg);height:100%;}
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:12px;}
+/* ===== TOP BANNER ===== */
+#banner{background:var(--navy);color:#fff;display:flex;align-items:stretch;border-bottom:3px outset #fff;padding:2px 6px;gap:8px;min-height:86px;}
+#title-block{min-width:250px;display:flex;flex-direction:column;justify-content:center;}
+#title-block .t1{font-weight:bold;font-size:17px;color:#FFFF00;letter-spacing:.5px;}
+#title-block .t2{font-weight:bold;font-size:15px;color:#fff;}
+#title-block .t3{font-size:11px;color:#7CFCFF;}
+#alarm-line{flex:1;background:#000;color:var(--red);font-weight:bold;font-size:14px;display:flex;align-items:center;padding:2px 10px;border:2px inset #808080;overflow:hidden;white-space:nowrap;}
+#alarm-line.ok{color:var(--lime);}
+#clockbox{background:#000;border:2px inset #808080;color:#fff;text-align:center;padding:2px 10px;min-width:150px;}
+#clockbox .d{color:var(--cyan);font-weight:bold;font-size:13px;}
+#clockbox .c{font-size:11px;color:#fff;}
+.kpis{display:flex;gap:6px;align-items:stretch;}
+.kpi{background:#000;border:2px inset #808080;min-width:104px;text-align:center;padding:2px 4px;}
+.kpi .lbl{font-size:10px;color:#FFFF00;font-weight:bold;}
+.kpi .val{font-size:17px;font-weight:bold;color:var(--lime);font-family:"Courier New",monospace;}
+.kpi .unit{font-size:10px;color:#aaa;}
+/* ===== MAIN LAYOUT ===== */
+#main{flex:1;display:flex;min-height:0;}
+#screen{flex:1;background:var(--bg2);border:2px inset #fff;margin:4px;overflow:auto;padding:6px;position:relative;}
+#rightnav{width:172px;background:var(--bg);border-left:2px outset #fff;display:flex;flex-direction:column;padding:4px;gap:2px;overflow-y:auto;}
+#rightnav .navh{background:var(--navy);color:#FFFF00;font-weight:bold;text-align:center;padding:3px;font-size:11px;}
+.navbtn{background:#D4D0C8;border:2px outset #fff;padding:5px 6px;font-size:11px;font-weight:bold;cursor:pointer;text-align:left;}
+.navbtn:hover{background:#e8e4dc;}
+.navbtn.active{background:var(--navy);color:#FFFF00;border:2px inset #808080;}
+/* ===== BOTTOM STRIP ===== */
+#bottom{background:var(--bg);border-top:2px outset #fff;display:flex;align-items:center;gap:10px;padding:5px 10px;}
+.pushbtn{border:3px outset #fff;padding:8px 22px;font-weight:bold;font-size:13px;cursor:pointer;}
+.pushbtn:active{border-style:inset;}
+#btn-reset{background:#D4D0C8;color:#000;}
+#btn-trip{background:var(--red);color:#fff;font-size:15px;box-shadow:0 0 8px #f00;}
+.statelamp{border:2px inset #808080;background:#000;color:var(--lime);font-weight:bold;padding:5px 10px;font-size:12px;min-width:110px;text-align:center;}
+.statelamp.red{color:var(--red);} .statelamp.amber{color:var(--amber);}
+#opline{margin-left:auto;display:flex;gap:6px;align-items:center;}
+.opbtn{border:2px outset #fff;background:#D4D0C8;font-weight:bold;padding:6px 10px;cursor:pointer;font-size:11px;}
+.opbtn:active{border-style:inset;}
+.opbtn.go{background:#003300;color:var(--lime);} .opbtn.warn{background:#330000;color:var(--red);}
+/* ===== PANELS ===== */
+.pnl{background:var(--panel);color:#fff;border:2px outset #fff;margin-bottom:8px;}
+.pnl > .ph{background:#1a2733;color:#FFFF00;font-weight:bold;padding:4px 8px;font-size:12px;border-bottom:1px solid #000;display:flex;justify-content:space-between;}
+.pnl > .pb{padding:8px;}
+.grid{display:grid;gap:8px;}
+.lamp{display:inline-block;min-width:86px;text-align:center;font-weight:bold;font-size:11px;padding:3px 6px;border:2px inset #808080;margin:1px;}
+.lamp.g{background:#003300;color:var(--lime);} .lamp.r{background:#330000;color:var(--red);} .lamp.y{background:#333300;color:var(--amber);} .lamp.c{background:#003333;color:var(--cyan);} .lamp.off{background:#222;color:#777;}
+.mtile{background:var(--panel2);border:2px outset #fff;padding:6px;color:#fff;}
+.mtile .tag{color:var(--cyan);font-weight:bold;font-size:11px;}
+.mtile .desc{font-size:11px;color:#FFFF00;margin-bottom:4px;}
+.mtile .row{display:flex;flex-wrap:wrap;gap:2px;margin:2px 0;}
+.sbtn{border:2px outset #fff;background:#D4D0C8;font-weight:bold;padding:3px 12px;cursor:pointer;font-size:11px;}
+.sbtn:active{border-style:inset;} .sbtn.start{background:#003300;color:var(--lime);} .sbtn.stop{background:#440000;color:#ffb0b0;}
+select.mode{background:#000;color:var(--lime);font-weight:bold;border:2px inset #808080;}
+/* bargraphs */
+.bars{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.bgauge{background:#101418;border:2px inset #808080;width:86px;padding:4px 2px;text-align:center;position:relative;}
+.bgauge .bv{font-family:"Courier New",monospace;font-weight:bold;color:var(--lime);font-size:13px;}
+.bgauge .bl{font-size:10px;color:#FFFF00;min-height:30px;}
+.btrack{height:150px;background:#000;position:relative;margin:4px auto;width:30px;border:1px solid #555;}
+.bfill{position:absolute;bottom:0;width:100%;background:linear-gradient(to top,#00c000,#00FF00);}
+.bfill.hot{background:linear-gradient(to top,#c00000,#FF0000);}
+.bfill.warm{background:linear-gradient(to top,#c0a000,#FFFF00);}
+.blim{position:absolute;width:100%;height:2px;} .blim.alarm{background:var(--amber);} .blim.trip{background:var(--red);}
+.dcard{background:#000;border:2px inset #808080;color:var(--lime);font-family:"Courier New",monospace;padding:4px 8px;text-align:center;min-width:110px;}
+.dcard .dl{font-family:Arial;font-size:10px;color:#FFFF00;font-weight:bold;}
+.dcard .dv{font-size:16px;font-weight:bold;}
+table.rep{width:100%;border-collapse:collapse;background:#fff;color:#000;font-size:11px;}
+table.rep th{background:var(--navy);color:#FFFF00;padding:4px;border:1px solid #666;position:sticky;top:0;}
+table.rep td{border:1px solid #999;padding:2px 6px;font-family:"Courier New",monospace;}
+table.rep tr:nth-child(even){background:#e8e8e8;}
+.ready-big{text-align:center;font-size:26px;font-weight:bold;padding:12px;border:3px outset #fff;margin-bottom:8px;}
+.ready-ok{background:#003300;color:var(--lime);} .ready-no{background:#440000;color:var(--red);}
+.tripgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px;}
+canvas#polar{background:#0a0f14;border:2px inset #808080;}
+.kv{display:flex;justify-content:space-between;background:#000;color:var(--lime);font-family:"Courier New",monospace;padding:2px 8px;margin:1px 0;border:1px solid #444;}
+.kv span:first-child{color:#FFFF00;font-family:Arial;font-size:11px;}
+#pid{background:#0d141b;border:2px inset #808080;padding:8px;color:var(--lime);font-family:"Courier New",monospace;font-size:11px;overflow-x:auto;white-space:pre;}
+.flowline{color:var(--cyan);} .valve-open{color:var(--red);font-weight:bold;} .valve-shut{color:var(--lime);font-weight:bold;}
+.marquee{animation:blink 1s steps(2) infinite;}
+@keyframes blink{50%{opacity:.25;}}
+::-webkit-scrollbar{width:12px;height:12px;} ::-webkit-scrollbar-thumb{background:#808080;border:2px outset #fff;}
+</style>
+</head>
+<body>
+
+<div id="banner">
+  <div id="title-block">
+    <div class="t1">H25 GAS TURBINE GENERATOR</div>
+    <div class="t2">UNIT-20 <span style="color:#00FFFF;font-size:11px;">C32 MODEL</span></div>
+    <div class="t3">DIASYS Netmation &mdash; SCADA SIMULATOR</div>
+  </div>
+  <div id="alarm-line" class="ok">● NO ACTIVE ALARMS — SYSTEM NORMAL</div>
+  <div id="clockbox"><div class="d" id="date-line">--/--/--</div><div class="c" id="time-line">--:--:--</div></div>
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">GEN. POWER</div><div class="val" id="kpi-mw">0.00</div><div class="unit">MW</div></div>
+    <div class="kpi"><div class="lbl">FOFFD</div><div class="val" id="kpi-fuel">0.0</div><div class="unit">%</div></div>
+    <div class="kpi"><div class="lbl">IGV POS</div><div class="val" id="kpi-igv">30.0</div><div class="unit">degA</div></div>
+    <div class="kpi"><div class="lbl">IBH POS</div><div class="val" id="kpi-ibh">0.0</div><div class="unit">%</div></div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="screen"></div>
+  <div id="rightnav"><div class="navh">SCREEN SELECT</div><div id="navbtns" style="display:flex;flex-direction:column;gap:2px;"></div></div>
+</div>
+
+<div id="bottom">
+  <button class="pushbtn" id="btn-reset">MASTER RESET</button>
+  <button class="pushbtn" id="btn-trip">▼ TRIP ▼</button>
+  <div class="statelamp" id="lamp-speed">0 rpm</div>
+  <div class="statelamp" id="lamp-state">STOPPED</div>
+  <div class="statelamp" id="lamp-brk">52G : OPEN</div>
+  <div id="opline">
+    <button class="opbtn go" data-op="aux">AUX START</button>
+    <button class="opbtn go" data-op="crank">CRANK</button>
+    <button class="opbtn go" data-op="fire">FIRE</button>
+    <button class="opbtn go" data-op="sync">SYNC 52G</button>
+    <button class="opbtn" data-op="loaddn">LOAD −</button>
+    <button class="opbtn" data-op="loadup">LOAD +</button>
+    <button class="opbtn warn" data-op="shut">SHUTDOWN</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= STATE ================= */
+const S = {
+  t: 0, phase: "STOPPED", speed: 0, freq: 0,
+  fuel: 0, gcv: 0, srv: 0, igv: 30.0, igvAuto: true, ibh: 0.0,
+  Tamb: 28.0, cpd: 0, lubeP: 0, gasP: 0,
+  Texh: 28, tcs: Array(18).fill(28), spread: 0, avgExh: 28, refExh: 28,
+  MW: 0, MVAR: 0, kV: 10.92, Amp: 0, PF: 0.99,
+  targetMW: 28.5, breaker: false, fired: false, tripped: false, tripCause: "",
+  masterReset: true, alarms: [], latched: [],
+  eoh: 23076.5, firedHrs: 18912.3, gasHrs: 18912.3, liqHrs: 0,
+  firedStarts: 412, totalStarts: 438, emgPost: 7, emgTotal: 11, lastReset: "26/09/20 08:15",
+  vib: {}, brgT: {}, wsT: {},
+  readyCache: false
+};
+// motors (13)
+const MOTORS = [
+  {tag:"20MBV10 AP001_M01", desc:"MAIN LUBE OIL PUMP (MOP)", run:false, mode:"AUTO", avail:true, abn:false, key:"mop"},
+  {tag:"20MBV20 AP001_M01", desc:"EMERG LUBE OIL PUMP (EOP DC)", run:false, mode:"AUTO", avail:true, abn:false, key:"eop"},
+  {tag:"20MBA10 AH001_M01", desc:"TURNING GEAR", run:true, mode:"AUTO", avail:true, abn:false, key:"turn"},
+  {tag:"20MBA10 AH002_M01", desc:"CRANKING MOTOR", run:false, mode:"MANUAL", avail:true, abn:false, key:"crank"},
+  {tag:"20MSV10 AN001_M01", desc:"VENT FAN A", run:false, mode:"AUTO", avail:true, abn:false, key:"ventA"},
+  {tag:"20MSV20 AN001_M01", desc:"VENT FAN B", run:false, mode:"AUTO", avail:true, abn:false, key:"ventB"},
+  {tag:"20MBV11 AP001_M01", desc:"JACKING OIL PUMP (JOP)", run:false, mode:"AUTO", avail:true, abn:false, key:"jop"},
+  {tag:"20MBA10 AH101_M01", desc:"GEN SPACE HEATER", run:false, mode:"AUTO", avail:true, abn:false, key:"htr1"},
+  {tag:"20MBA10 AH102_M01", desc:"EXCITER SPACE HEATER", run:false, mode:"AUTO", avail:true, abn:false, key:"htr2"},
+  {tag:"20MAB10 AT001_M01", desc:"INLET FILTER BLOWER", run:false, mode:"AUTO", avail:true, abn:false, key:"flt"},
+  {tag:"20MBQ10 AP001_M01", desc:"HYDRAULIC / IGV PUMP", run:false, mode:"AUTO", avail:true, abn:false, key:"hyd"},
+  {tag:"20MSV30 AN001_M01", desc:"SEAL AIR FAN", run:false, mode:"AUTO", avail:true, abn:false, key:"seal"},
+  {tag:"20MBN10 AP001_M01", desc:"FUEL GAS HEATER FAN", run:false, mode:"AUTO", avail:true, abn:false, key:"fgh"},
+];
+const M = k => MOTORS.find(m=>m.key===k);
+// base values
+const BRG_BASE = {"LO-A":52.5,"LO-B":52.5,"LO-C":52.5,"GEN-EE":60.7,"GEN-TE":59.3,"RG-#4":57.6,"RG-#3":57.8,"RG-#2":87.8,"RG-#1":80.4,"THRUST":70.0,"TB-#2":63.6,"TB-#1":66.7};
+const VIB_BASE = {"GEN2X":18.6,"GEN2Y":11.3,"GEN1X":28.8,"GEN1Y":29.6,"RG4X":22.1,"RG4Y":19.4,"RG3X":25.3,"RG3Y":21.0,"RG2X":33.2,"RG2Y":30.1,"RG1X":35.4,"RG1Y":31.8,"TB2X":61.6,"TB2Y":41.1,"TB1X":28.5,"TB1Y":5.3};
+const WS_BASE = {"1FWD":485,"1AFT":470,"2FWD":504,"2AFT":476,"3FWD":488,"3AFT":329};
+Object.keys(BRG_BASE).forEach(k=>S.brgT[k]=30);
+Object.keys(VIB_BASE).forEach(k=>S.vib[k]=2);
+Object.keys(WS_BASE).forEach(k=>S.wsT[k]=30);
+for(let i=0;i<18;i++) S.tcs[i]=28;
+
+function alarm(msg){ if(!S.latched.includes(msg)) S.latched.push(msg); if(!S.alarms.includes(msg)) S.alarms.push(msg); }
+function clearAlarms(){ S.alarms = S.alarms.filter(a=>isActiveAlarm(a)); S.latched = S.latched.filter(a=>isActiveAlarm(a)); }
+function isActiveAlarm(a){
+  if(a.startsWith("TRIP:")) return S.tripped;
+  if(a==="LUBE OIL PRESS LOW") return S.lubeP<0.1 && S.speed>500;
+  if(a==="EXH TEMP HIGH") return S.Texh>600;
+  if(a==="VIBRATION HIGH") return Object.values(S.vib).some(v=>v>80);
+  if(a==="F&G SYSTEM TROUBLE") return false;
+  return true;
+}
+
+/* ================= START CHECKS ================= */
+function startChecks(){
+  return [
+    {g:"START CHECK 0 — POWER", items:[
+      ["AC BUS NORMAL", true],["DC BUS NORMAL", true],["UPS NORMAL", true]]},
+    {g:"START CHECK 1 — SHAFT", items:[
+      ["ZERO SPEED / TURNING GEAR", S.speed<5 && M("turn").run],["CRANK MOTOR AVAILABLE", M("crank").avail],["JOP AVAILABLE", M("jop").avail || S.speed>500]]},
+    {g:"START CHECK 2 — LUBE OIL", items:[
+      ["LO HEADER PRESS > 0.1 MPa", S.lubeP>0.1],["LO TEMP > 15 °C", true],["MOP/EOP AVAILABLE", M("mop").avail && M("eop").avail]]},
+    {g:"START CHECK 3 — TRIP RESET", items:[
+      ["MASTER TRIP RESET", !S.tripped],["NO PROTECTIVE TRIP", !S.tripped],["OVERSPEED BOLT HEALTHY", S.speed<7788]]},
+    {g:"START CHECK 4 — FUEL GAS", items:[
+      ["GAS HEADER PRESS OK", S.gasP>0.5 || S.phase==="STOPPED"],["SRV/GCV CLOSED (STOP)", S.phase==="STOPPED"? (S.gcv<1&&S.srv<1):true],["F&G SYSTEM HEALTHY", true]]},
+    {g:"START CHECK 5 — AIR / IGV", items:[
+      ["IGV PUMP RUNNING", M("hyd").run || S.phase==="STOPPED"],["VENT FAN RUNNING", M("ventA").run||M("ventB").run],["INLET FILTER DP OK", true]]},
+    {g:"START CHECK 6 — GENERATOR", items:[
+      ["52G OPEN", !S.breaker],["EXCITER READY", true],["SPACE HEATERS OFF WHEN RUN", S.speed>500?(!M("htr1").run):true]]},
+    {g:"START CHECK 7 — AUX", items:[
+      ["SEAL AIR FAN", M("seal").run || S.phase==="STOPPED"],["BEARING TEMPS OK", Object.values(S.brgT).every(t=>t<110)],["VIBRATION OK", Object.values(S.vib).every(v=>v<100)]]},
+  ];
+}
+function readyToStart(){ return startChecks().every(g=>g.items.every(it=>it[1])); }
+
+/* ================= TRIP MONITOR ================= */
+function tripMatrix(){
+  const vibHi = Object.values(S.vib).some(v=>v>100);
+  return [
+    {g:"PROTECTIVE TRIPS", items:[
+      ["OVERSPEED > 7788 rpm", S.speed>7788],["LOW LUBE OIL PRESS < 0.10 MPa", S.lubeP<0.1 && S.speed>500],
+      ["HIGH VIBRATION > 100 um", vibHi],["MANUAL TRIP PB", S.tripped && S.tripCause==="MANUAL"] ]},
+    {g:"PRE-IGNITION TRIPS", items:[
+      ["FLAME DETECTOR FAULT", false],["GAS LEAK (F&G)", false],["IGNITION FAILURE", false],["CRANK TIMEOUT", false]]},
+    {g:"POST-IGNITION TRIPS", items:[
+      ["EXH OVERTEMP > 620 °C", S.Texh>620],["FLAME LOSS", S.fired && S.fuel<3 && S.speed>3000],
+      ["HIGH EXH SPREAD > 90 °C", S.spread>90],["CPD FAULT", false]]},
+  ];
+}
+
+/* ================= OPERATIONS ================= */
+function op(cmd){
+  if(cmd==="aux"){ ["mop","ventA","ventB","jop","hyd","seal","flt"].forEach(k=>{M(k).run=true;}); S.phase = S.speed>10?S.phase:"AUX READY"; log("AUX START — pumps & fans started"); }
+  if(cmd==="crank"){
+    if(S.tripped){ log("CRANK BLOCKED — TRIPPED. Press MASTER RESET"); return; }
+    if(!readyToStart()){ alarm("START BLOCKED — CHECK START CHECK"); log("CRANK BLOCKED — NOT READY TO START"); return; }
+    M("turn").run=false; M("crank").run=true; S.phase="CRANK"; S.totalStarts++; log("CRANKING — 0 → 2000 rpm");
+  }
+  if(cmd==="fire"){
+    if(S.speed<1800){ log("FIRE BLOCKED — speed < 1800 rpm (crank first)"); return; }
+    S.fired=true; S.fuel=12; S.gcv=8; S.srv=15; S.phase="FIRED / ACCEL"; S.firedStarts++; S.firedHrs+=0.001; log("FIRED — ignition, warm-up");
+  }
+  if(cmd==="sync"){
+    if(!S.fired || S.speed<7150){ log("SYNC BLOCKED — need FSNL ~7260 rpm fired"); return; }
+    S.breaker=true; S.phase="SYNCED / LOADED"; S.targetMW=Math.max(S.targetMW,5); log("52G CLOSED — synchronized to grid");
+  }
+  if(cmd==="loadup"){ S.targetMW=Math.min(32,S.targetMW+1); log("LOAD DEMAND → "+S.targetMW.toFixed(1)+" MW"); }
+  if(cmd==="loaddn"){ S.targetMW=Math.max(2,S.targetMW-1); log("LOAD DEMAND → "+S.targetMW.toFixed(1)+" MW"); }
+  if(cmd==="shut"){ shutdown("NORMAL SHUTDOWN"); }
+}
+function shutdown(reason){
+  S.breaker=false; S.fired=false; S.fuel=0; S.gcv=0; S.srv=0; M("crank").run=false;
+  if(S.speed>10) S.phase="COAST DOWN"; else S.phase="STOPPED";
+  log(reason+" — fuel cut, 52G open");
+}
+function doTrip(cause){
+  if(S.tripped) return;
+  S.tripped=true; S.tripCause=cause; S.fired=false; S.breaker=false; S.fuel=0; S.gcv=0; S.srv=0; M("crank").run=false;
+  S.phase="TRIPPED"; S.emgTotal++; if(S.speed>3000) S.emgPost++;
+  alarm("TRIP: "+cause); log("★★★ TRIP: "+cause+" ★★★");
+}
+const LOG=[];
+function log(m){ const d=new Date(); LOG.unshift(d.toLocaleTimeString()+"  "+m); if(LOG.length>60)LOG.pop(); const el=document.getElementById("oplog"); if(el) el.innerHTML=LOG.map(x=>"• "+x).join("<br>"); }
+
+/* ================= PHYSICS 10 Hz ================= */
+let noiseT=0;
+function tick(){
+  const dt=0.1; S.t+=dt; noiseT+=dt;
+  // lube oil pressure
+  const pumpOn = M("mop").run||M("eop").run;
+  const lubeTgt = pumpOn?0.49:0.0;
+  S.lubeP += (lubeTgt-S.lubeP)*Math.min(1,dt*0.8);
+  // gas header pressure
+  S.gasP += ((S.fired||S.phase!=="STOPPED"?2.1:0)-S.gasP)*dt*0.5;
+  // speed dynamics
+  let tgt=0, rate=60;
+  if(S.tripped || S.phase==="TRIPPED"){ tgt=0; rate=55; if(S.speed<5){S.phase="STOPPED";} }
+  else if(S.phase==="CRANK"){ tgt=2000; rate=160; if(S.speed>=1950){/*hold for fire*/} }
+  else if(S.phase==="FIRED / ACCEL"){ tgt=7260; rate=95; if(S.speed>=7240){S.phase="FSNL"; log("FSNL REACHED — 7260 rpm / 50.0 Hz. Ready to SYNC");} }
+  else if(S.phase==="FSNL"){ tgt=7260; rate=60; }
+  else if(S.phase==="SYNCED / LOADED"){ tgt=7260; rate=30; }
+  else if(S.phase==="COAST DOWN"){ tgt=0; rate=55; if(S.speed<5){S.phase="STOPPED"; M("turn").run=true;} }
+  else if(S.phase==="AUX READY"){ tgt=0; rate=60; }
+  if(S.phase!=="STOPPED" && !(S.tripped) || S.speed>1){
+    if(S.speed<tgt) S.speed=Math.min(tgt,S.speed+rate*dt);
+    else S.speed=Math.max(tgt,S.speed-rate*dt);
+  }
+  if(S.speed<3 && S.phase==="STOPPED"){ if(M("turn").run) S.speed=0; }
+  S.freq = S.speed/7260*50;
+  // fuel / IGV / IBH logic
+  if(S.tripped){ S.fuel=Math.max(0,S.fuel-40*dt); }
+  else if(S.breaker){ // load follow
+    const fuelTgt = 22 + S.targetMW/0.663;
+    S.fuel += (fuelTgt-S.fuel)*Math.min(1,dt*0.7);
+    // MW from fuel with small droop vs freq
+    S.MW = (S.fuel-22)*0.663 + (50-S.freq)*2.0;
+    S.MW = Math.max(0,S.MW);
+  } else if(S.fired){
+    if(S.phase==="FSNL"){ S.fuel += (24.5-S.fuel)*dt*0.5; }
+    else { // accel schedule
+      const fT = 12 + (S.speed/7260)*13; S.fuel += (fT-S.fuel)*dt*0.6;
+    }
+    S.MW=0;
+  } else { if(!S.tripped && S.phase!=="CRANK") S.fuel=Math.max(0,S.fuel-8*dt); S.MW=0; }
+  if(S.igvAuto && !S.tripped){
+    const igvT = S.breaker ? (30+52.7*Math.min(1,S.MW/30)) : (S.fired? (34+ (S.speed/7260)*8) : 30);
+    S.igv += (Math.min(82.7,igvT)-S.igv)*Math.min(1,dt*0.5);
+  }
+  if(!S.fired && !S.breaker){ S.gcv=Math.max(0,S.gcv-30*dt); S.srv=Math.max(0,S.srv-30*dt); }
+  else { S.gcv+=(Math.min(100,S.fuel*1.15)-S.gcv)*dt; S.srv+=(Math.min(100,S.fuel*1.35)-S.srv)*dt; }
+  // CPD
+  const nn=S.speed/7260;
+  S.cpd = 1.30*Math.pow(Math.max(0,nn),2)*(0.35+0.65*(S.igv/82.7));
+  // exhaust temp
+  const Ttgt = 25 + 6*S.fuel + 44.5*(S.speed/1000) - 1.7*S.igv;
+  S.Texh += (Math.max(S.Tamb,Ttgt)-S.Texh)*Math.min(1,dt*0.6);
+  const n1=Math.sin(noiseT*1.7)*4+Math.sin(noiseT*0.6)*5;
+  for(let i=0;i<18;i++){
+    const g = Math.sin(noiseT*0.9+i*2.1)*9 + Math.sin(noiseT*2.3+i*0.7)*6 + n1*0.4;
+    S.tcs[i] += ((S.Texh+g)-S.tcs[i])*Math.min(1,dt*1.2);
+  }
+  S.avgExh = S.tcs.reduce((a,b)=>a+b,0)/18;
+  S.refExh = S.avgExh+1.3+Math.sin(noiseT)*1.5;
+  S.spread = Math.max(...S.tcs)-Math.min(...S.tcs);
+  // electrical
+  if(S.breaker){ S.kV=10.92+Math.sin(noiseT*0.8)*0.02; S.PF=0.99;
+    S.Amp = S.MW*1000/(Math.sqrt(3)*S.kV*S.PF+1e-6);
+    S.MVAR = S.MW*0.14+Math.sin(noiseT*0.5)*0.2;
+  } else { S.Amp=0; S.MVAR=0; if(S.speed>7000) S.kV=10.9; else S.kV=Math.max(0,S.speed/7260*10.9); }
+  // bearing temps approach load targets
+  const loadF = S.breaker? S.MW/30 : (S.fired?0.35:0);
+  Object.keys(BRG_BASE).forEach(k=>{
+    const base=BRG_BASE[k]; const cold=30;
+    const tgt2 = S.speed<100? cold : cold+(base-cold)*Math.min(1,(0.25+0.75*Math.min(1,S.speed/7260))*(0.7+0.3*loadF+0.15));
+    S.brgT[k]+= (tgt2+Math.sin(noiseT+iHash(k))*0.6 - S.brgT[k])*Math.min(1,dt*0.05);
+  });
+  Object.keys(WS_BASE).forEach(k=>{
+    const base=WS_BASE[k];
+    const tgt2 = S.fired? base*(0.55+0.45*Math.min(1,S.speed/7260)) : 30;
+    S.wsT[k]+= (tgt2+Math.sin(noiseT*1.3+iHash(k)*2)*3 - S.wsT[k])*Math.min(1,dt*0.08);
+  });
+  // vibration
+  const res = Math.exp(-Math.pow((S.speed-4200)/900,2))*25; // critical pass
+  Object.keys(VIB_BASE).forEach(k=>{
+    const base=VIB_BASE[k];
+    const runF = Math.min(1,S.speed/7260);
+    const tgt2 = 2 + (base-2)*runF + res*runF*0.6 + (S.breaker? S.MW/30*6:0);
+    S.vib[k]+= (tgt2+Math.sin(noiseT*7+iHash(k)*5)*1.8 - S.vib[k])*Math.min(1,dt*1.5);
+  });
+  // trips
+  if(!S.tripped && S.speed>500){
+    if(S.lubeP<0.1) doTrip("LOW LUBE OIL PRESS < 0.10 MPa");
+    else if(Object.values(S.vib).some(v=>v>100)) doTrip("HIGH VIBRATION > 100 um");
+    else if(S.Texh>620) doTrip("EXH OVERTEMP > 620 °C");
+    else if(S.speed>7788) doTrip("OVERSPEED > 7788 rpm");
+    else if(S.fired && S.fuel<3 && S.speed>3000) doTrip("FLAME LOSS");
+    else if(S.spread>120) doTrip("EXH SPREAD HIGH");
+  }
+  if(!S.tripped && S.speed>7788) doTrip("OVERSPEED > 7788 rpm");
+  if(S.fired){ S.firedHrs+=dt/3600; S.eoh+=dt/3600*1.2; }
+  updateHeader(); updateBottom(); updateScreenDyn();
+}
+function iHash(s){ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))%97; return h/10; }
+
+/* ================= HEADER / BOTTOM ================= */
+function updateHeader(){
+  setT("kpi-mw", S.MW.toFixed(2)); setT("kpi-fuel", S.fuel.toFixed(1));
+  setT("kpi-igv", S.igv.toFixed(1)); setT("kpi-ibh", S.ibh.toFixed(1));
+  const now=new Date();
+  const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const p=n=>String(n).padStart(2,"0");
+  let h=now.getHours(), ap=h>=12?"PM":"AM", h12=h%12||12;
+  document.getElementById("date-line").textContent =
+    `${String(now.getFullYear()).slice(2)}/${p(now.getMonth()+1)}/${p(now.getDate())} (${days[now.getDay()]}) ${ap} ${p(h12)}:${p(now.getMinutes())}`;
+  document.getElementById("time-line").textContent = `${p(h12)}:${p(now.getMinutes())}:${p(now.getSeconds())} ${ap}  JST`;
+  const al=document.getElementById("alarm-line");
+  const act=[...S.alarms.filter(isActiveAlarm)];
+  if(S.tripped) act.unshift("TRIP: "+S.tripCause);
+  if(act.length===0){ al.className="ok"; al.textContent="● NO ACTIVE ALARMS — SYSTEM NORMAL"; }
+  else { al.className="marquee"; al.textContent="▲ "+act.slice(0,3).join("   ///   ")+(act.length>3?`   (+${act.length-3} MORE)`:""); }
+}
+function updateBottom(){
+  setT("lamp-speed", Math.round(S.speed)+" rpm / "+S.freq.toFixed(2)+" Hz");
+  const ls=document.getElementById("lamp-state");
+  ls.textContent=S.phase+(S.tripped?" — TRIP":"");
+  ls.className="statelamp "+(S.tripped?"red":(S.breaker?"":"amber"));
+  const lb=document.getElementById("lamp-brk");
+  lb.textContent="52G : "+(S.breaker?"CLOSED ●":"OPEN ○")+(S.MW>0.5?`  ${S.MW.toFixed(1)}MW`:"");
+  lb.className="statelamp "+(S.breaker?"red":"");
+}
+function setT(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
+
+/* ================= NAV / SCREENS ================= */
+const SCREENS=[
+ ["START-UP",rStartup],["FFD CONTROL",rFFD],["SYNCHRO & EXC OPE",rSync],["FUEL GAS",rFuelGas],
+ ["LUBE OIL",rLube],["GENERATOR",rGen],["VENTILATION",rVent],["IBH CONTROL",rIBH],
+ ["MOTORS",rMotors],["BEARING OIL",rBearing],["EXHAUST",rExhaust],["VIBRATION",rVib],
+ ["WHEELSPACE",rWS],["START CHECK",rStartCheck],["TIMERS",rTimers],["TRIP MONITOR",rTrip],
+ ["DATA REPORT 1",rRep1],["DATA REPORT 2",rRep2],["OVERSPEED",rOver],
+];
+let cur=8;
+function buildNav(){
+  const n=document.getElementById("navbtns"); n.innerHTML="";
+  SCREENS.forEach((s,i)=>{ const b=document.createElement("button"); b.className="navbtn"+(i===cur?" active":"");
+    b.textContent=(i+1)+". "+s[0]; b.onclick=()=>{cur=i;buildNav();render();}; n.appendChild(b); });
+}
+function render(){ const el=document.getElementById("screen"); el.innerHTML=`<div class="pnl"><div class="ph"><span>${SCREENS[cur][0]}</span><span>UNIT-20 · H25 C32 · ${S.phase}</span></div><div class="pb" id="spb"></div></div>`; SCREENS[cur][1](document.getElementById("spb")); updateScreenDyn(); }
+function lampHTML(txt,ok){ return `<span class="lamp ${ok?"g":"r"}">${txt}</span>`; }
+function dcard(l,id,u){ return `<div class="dcard"><div class="dl">${l}</div><div class="dv" id="${id}">---</div><div class="dl">${u}</div></div>`; }
+
+/* ---- START-UP ---- */
+function rStartup(root){
+  root.innerHTML=`<div class="grid" style="grid-template-columns:1fr 1fr;">
+   <div class="pnl"><div class="ph"><span>OPERATING SEQUENCE</span></div><div class="pb">
+     <div id="ready-banner" class="ready-big">---</div>
+     <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="opbtn go" data-op="aux">1.AUX START</button><button class="opbtn go" data-op="crank">2.CRANK</button>
+      <button class="opbtn go" data-op="fire">3.FIRE</button><button class="opbtn go" data-op="sync">4.SYNC 52G</button>
+      <button class="opbtn warn" data-op="shut">SHUTDOWN</button></div>
+     <div class="kv"><span>SHAFT SPEED</span><b id="d-speed">---</b></div>
+     <div class="kv"><span>FREQUENCY</span><b id="d-freq">---</b></div>
+     <div class="kv"><span>FUEL (FOFFD)</span><b id="d-fuel">---</b></div>
+     <div class="kv"><span>CPD</span><b id="d-cpd">---</b></div>
+     <div class="kv"><span>EXH TEMP AVG</span><b id="d-exh">---</b></div>
+     <div class="kv"><span>LOAD DEMAND</span><b id="d-dem">---</b></div>
+     <div style="margin-top:6px;color:#FFFF00;font-weight:bold;">OPERATION LOG</div>
+     <div id="oplog" style="background:#000;color:#00FF00;font-family:'Courier New',monospace;font-size:11px;height:130px;overflow:auto;border:2px inset #808080;padding:4px;">${LOG.map(x=>"• "+x).join("<br>")}</div>
+   </div></div>
+   <div class="pnl"><div class="ph"><span>TURBINE P&amp;ID (LIVE)</span></div><div class="pb"><div id="pid"></div>
+     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+      ${dcard("GEN POWER","d-mw","MW")}${dcard("VOLTAGE","d-kv","kV")}${dcard("CURRENT","d-amp","A")}${dcard("FREQ","d-hz","Hz")}
+     </div></div></div></div>`;
+  bindOps(root);
+}
+function bindOps(root){ root.querySelectorAll("[data-op]").forEach(b=>b.onclick=()=>op(b.dataset.op)); }
+
+/* ---- FFD ---- */
+function rFFD(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>FUEL FLOW DIVIDER (FOFFD) CONTROL</span><span>AUTO / MANUAL</span></div><div class="pb">
+   <div style="display:flex;gap:8px;flex-wrap:wrap;">${dcard("FOFFD","d-fuel2","%")}${dcard("GCV POS","d-gcv","%")}${dcard("SRV POS","d-srv","%")}${dcard("GAS HDR P","d-gasp","MPa")}${dcard("LOAD DEMAND","d-dem2","MW")}</div>
+   <p style="color:#FFFF00;">FUEL DEMAND raise/lower (only when SYNCED):</p>
+   <button class="sbtn" id="fdn">▼ LOWER</button> <button class="sbtn" id="fup">▲ RAISE</button>
+   <label style="margin-left:12px;color:#fff;"><input type="checkbox" id="igvauto" ${S.igvAuto?"checked":""}> IGV AUTO</label>
+   <div class="kv"><span>P<sub>MW</sub> = √3·V·I·cosφ / 1000</span><b id="d-pcalc">---</b></div></div></div>`;
+  root.querySelector("#fdn").onclick=()=>op("loaddn"); root.querySelector("#fup").onclick=()=>op("loadup");
+  root.querySelector("#igvauto").onchange=e=>S.igvAuto=e.target.checked;
+}
+/* ---- SYNC ---- */
+function rSync(root){
+  root.innerHTML=`<div class="grid" style="grid-template-columns:1fr 1fr;"><div class="pnl"><div class="ph"><span>SYNCHRO & EXCITATION</span></div><div class="pb">
+   <div class="kv"><span>GEN FREQ</span><b id="d-freq2">---</b></div><div class="kv"><span>GRID FREQ</span><b>50.00 Hz</b></div>
+   <div class="kv"><span>GEN VOLT</span><b id="d-kv2">---</b></div><div class="kv"><span>GRID VOLT</span><b>10.90 kV</b></div>
+   <div class="kv"><span>52G BREAKER</span><b id="d-brk">---</b></div><div class="kv"><span>PF</span><b id="d-pf">---</b></div>
+   <div style="margin-top:6px;"><button class="opbtn go" data-op="sync">CLOSE 52G (SYNC)</button>
+   <button class="opbtn warn" data-op="shut">OPEN 52G</button></div>
+   <canvas id="synch" width="300" height="120" style="background:#000;border:2px inset #808080;margin-top:6px;"></canvas>
+   </div></div><div class="pnl"><div class="ph"><span>EXCITATION</span></div><div class="pb">
+   <div class="kv"><span>FIELD VOLT</span><b>~180 V</b></div><div class="kv"><span>FIELD CURR</span><b>~640 A</b></div>
+   <div class="kv"><span>MVAR</span><b id="d-mvar">---</b></div><div class="kv"><span>PHASE</span><b id="d-phase">---</b></div></div></div></div>`;
+  bindOps(root);
+}
+/* ---- FUEL GAS ---- */
+function rFuelGas(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>FUEL GAS SYSTEM</span></div><div class="pb"><div id="pid2"></div>
+   <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">${dcard("SRV","d-srv2","%")}${dcard("GCV","d-gcv2","%")}${dcard("GAS PRESS","d-gasp2","MPa")}${dcard("FOFFD","d-fuel3","%")}</div></div></div>`;
+}
+/* ---- LUBE ---- */
+function rLube(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>LUBE OIL SYSTEM</span></div><div class="pb">
+   <div style="display:flex;gap:6px;flex-wrap:wrap;">${dcard("HDR PRESS","d-lube","MPa")}${dcard("HDR TEMP A","d-loa","°C")}${dcard("MOP","d-mop","")}${dcard("EOP","d-eop","")}${dcard("JOP","d-jop","")}</div>
+   <div class="kv"><span>TRIP SETPOINT</span><b>0.10 MPa (TRIP below)</b></div>
+   <button class="sbtn start" id="lmop">MOP START/STOP</button> <button class="sbtn start" id="leop">EOP START/STOP</button></div></div>`;
+  root.querySelector("#lmop").onclick=()=>{M("mop").run=!M("mop").run;}; root.querySelector("#leop").onclick=()=>{M("eop").run=!M("eop").run;};
+}
+/* ---- GEN ---- */
+function rGen(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>GENERATOR</span></div><div class="pb">
+   <div style="display:flex;gap:6px;flex-wrap:wrap;">${dcard("MW","d-mw2","MW")}${dcard("MVAR","d-mvar2","MVAR")}${dcard("kV","d-kv3","kV")}${dcard("AMP","d-amp2","A")}${dcard("FREQ","d-hz2","Hz")}${dcard("PF","d-pf2","-")}</div>
+   <div class="kv"><span>P CALC = √3·V·I·cosφ/1000</span><b id="d-pcalc2">---</b></div>
+   <div class="kv"><span>52G</span><b id="d-brk2">---</b></div></div></div>`;
+}
+/* ---- VENT ---- */
+function rVent(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>VENTILATION</span></div><div class="pb"><div id="venttiles" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));"></div>
+   <div class="kv"><span>ENCLOSURE TEMP</span><b id="d-enct">---</b></div><div class="kv"><span>EXHAUST DUCT TEMP</span><b id="d-exh2">---</b></div></div></div>`;
+  const v=root.querySelector("#venttiles");
+  ["ventA","ventB","seal","fgh"].forEach(k=>{ const m=M(k); const d=document.createElement("div"); d.className="mtile";
+    d.innerHTML=`<div class="tag">${m.tag}</div><div class="desc">${m.desc}</div>${lampHTML(m.run?"RUNNING":"STOPPED",m.run)}<br><button class="sbtn ${m.run?"stop":"start"}" data-m="${k}">${m.run?"STOP":"START"}</button>`;
+    v.appendChild(d); });
+  v.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{const m=M(b.dataset.m); m.run=!m.run; render();});
+}
+/* ---- IBH ---- */
+function rIBH(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>IBH (INLET BLEED HEATING) + IGV CONTROL</span></div><div class="pb">
+   <div style="display:flex;gap:6px;flex-wrap:wrap;">${dcard("IBH POS","d-ibh","%")}${dcard("IGV POS","d-igv","degA")}${dcard("CPD","d-cpd2","MPa")}${dcard("COMP INLET","d-amb","°C")}</div>
+   <label>IBH VALVE % <input type="range" id="ibhr" min="0" max="100" step="0.5" value="${S.ibh}" style="width:300px;"></label>
+   <label style="margin-left:16px;">IGV MANUAL degA <input type="range" id="igvr" min="30" max="82.7" step="0.1" value="${S.igv}" style="width:300px;"></label>
+   <div><label><input type="checkbox" id="igva" ${S.igvAuto?"checked":""}> IGV AUTO SCHEDULE</label></div></div></div>`;
+  root.querySelector("#ibhr").oninput=e=>S.ibh=+e.target.value;
+  root.querySelector("#igvr").oninput=e=>{S.igv=+e.target.value; S.igvAuto=false; root.querySelector("#igva").checked=false;};
+  root.querySelector("#igva").onchange=e=>S.igvAuto=e.target.checked;
+}
+/* ---- MOTORS (SCREEN 1) 1:1 — 13 motors, live RUN/STOP + AUTO/MAN + interlock ---- */
+function motorInterlock(k){
+  if(k==="crank" && M("turn").run) return "TURNING GEAR ON — disengage first";
+  if(k==="turn" && S.speed>500) return "SHAFT ROLLING — interlocked";
+  if(k==="mop" && S.speed>500 && !M("mop").run) return "";
+  return "";
+}
+function rMotors(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>MOTORS CONTROL — 13 AUX MOTORS</span><span>AUTO / MANUAL · START / STOP · LIVE</span></div>
+   <div class="pb"><div class="kv"><span>MOP+EOP → LUBE HDR</span><b id="d-mhdr">---</b></div>
+   <div class="grid" id="mgrid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));"></div></div></div>`;
+  const g=root.querySelector("#mgrid");
+  MOTORS.forEach((m,i)=>{
+    const d=document.createElement("div"); d.className="mtile"; d.id="mtile-"+m.key;
+    d.innerHTML=`<div class="tag">${m.tag}</div><div class="desc">${m.desc}</div>
+     <div class="row" id="mrow1-${m.key}"></div>
+     <div class="row" id="mrow2-${m.key}"></div>
+     <div class="row"><select class="mode" data-i="${i}"><option ${m.mode==="AUTO"?"selected":""}>AUTO</option><option ${m.mode==="MANUAL"?"selected":""}>MANUAL</option></select>
+     <button class="sbtn start" data-s="${i}">START</button><button class="sbtn stop" data-p="${i}">STOP</button></div>
+     <div class="row" id="mlock-${m.key}" style="font-size:10px;color:#FFFF00;"></div>`;
+    g.appendChild(d);
+  });
+  g.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const m=MOTORS[+b.dataset.s]; const lk=motorInterlock(m.key); if(lk){log("MOTOR BLOCKED — "+m.desc+": "+lk); return;} m.run=true; log(m.desc+" STARTED ("+m.mode+")"); updateMotorDyn();});
+  g.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{const m=MOTORS[+b.dataset.p]; m.run=false; log(m.desc+" STOPPED"); updateMotorDyn();});
+  g.querySelectorAll(".mode").forEach(s=>s.onchange=()=>{MOTORS[+s.dataset.i].mode=s.value; log(MOTORS[+s.dataset.i].desc+" → "+s.value);});
+  updateMotorDyn();
+}
+function updateMotorDyn(){
+  MOTORS.forEach(m=>{
+    const r1=document.getElementById("mrow1-"+m.key), r2=document.getElementById("mrow2-"+m.key);
+    if(!r1) return;
+    const abn = (m.key==="mop"&&!m.run&&S.speed>500)||(m.key==="hyd"&&!m.run&&S.speed>500);
+    m.abn=abn;
+    r1.innerHTML=lampHTML(m.run?"RUNNING":"STOPPED",m.run)+lampHTML(m.avail?"AVAILABLE":"UNAVAIL",m.avail)+lampHTML(m.mode,m.mode==="AUTO");
+    r2.innerHTML=lampHTML(abn?"ABNORMAL":"NORMAL",!abn)+lampHTML(m.run?"— LOADED":"STANDBY",true);
+    const lk=document.getElementById("mlock-"+m.key); if(lk) lk.textContent=motorInterlock(m.key);
+  });
+  const h=document.getElementById("d-mhdr"); if(h) h.textContent="MOP:"+(M("mop").run?"RUN":"STOP")+" EOP:"+(M("eop").run?"RUN":"STOP")+" → "+S.lubeP.toFixed(2)+" MPa";
+}
+/* ---- bar helper ---- */
+function barGroup(rootId, defs){
+  const r=document.getElementById(rootId); if(!r) return;
+  r.innerHTML="";
+  defs.forEach(d=>{
+    const g=document.createElement("div"); g.className="bgauge";
+    g.innerHTML=`<div class="bl">${d[0]}</div><div class="btrack"><div class="bfill" id="bf-${d[1]}"></div><div class="blim alarm" id="la-${d[1]}"></div><div class="blim trip" id="lt-${d[1]}"></div></div><div class="bv" id="bv-${d[1]}">--</div><div class="bl">${d[4]||""}</div>`;
+    r.appendChild(g);
+  });
+}
+function setBar(key,val,min,max,al,tr){
+  const f=document.getElementById("bf-"+key), v=document.getElementById("bv-"+key);
+  if(!f) return; const pct=Math.max(0,Math.min(100,(val-min)/(max-min)*100));
+  f.style.height=pct+"%"; f.className="bfill"+(val>=tr?" hot":val>=al?" warm":"");
+  if(v){ v.textContent=(+val).toFixed(1); v.style.color=val>=tr?"#FF0000":val>=al?"#FFFF00":"#00FF00"; }
+  const la=document.getElementById("la-"+key), lt=document.getElementById("lt-"+key);
+  if(la) la.style.bottom=((al-min)/(max-min)*100)+"%"; if(lt) lt.style.bottom=((tr-min)/(max-min)*100)+"%";
+}
+/* ---- BEARING OIL (SCREEN 2) 1:1 — P&ID + drain temp bargraphs ---- */
+function rBearing(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>BEARING OIL — P&amp;ID + DRAIN TEMPS</span><span>ALM 90°C · TRIP 110°C</span></div><div class="pb">
+   <div id="pid-brg"></div>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;">${dcard("HDR PRESS","d-lube","MPa")}${dcard("HDR TEMP A","d-loa","°C")}${dcard("MOP","d-mop","")}${dcard("EOP","d-eop","")}${dcard("JOP","d-jop","")}${dcard("SPEED","d-spd","rpm")}${dcard("EXH AVG","d-exh3","°C")}</div>
+   <div class="bars" id="brgbars"></div></div></div>`;
+  barGroup("brgbars",[["LO HDR A","LO-A",0,120,"","°C"],["LO HDR B","LO-B",0,120,"","°C"],["LO HDR C","LO-C",0,120,"","°C"],["GEN EE","GEN-EE",0,120,"","°C"],["GEN TE","GEN-TE",0,120,"","°C"],["RG #4","RG-#4",0,120,"","°C"],["RG #3","RG-#3",0,120,"","°C"],["RG #2","RG-#2",0,120,"","°C"],["RG #1","RG-#1",0,120,"","°C"],["THRUST","THRUST",0,120,"","°C"],["TB #2","TB-#2",0,120,"","°C"],["TB #1","TB-#1",0,120,"","°C"]]);
+}
+function bearingPidHTML(){
+  const open=v=>v?"RUN":"STOP";
+  return `TANK ──▶ [MOP <span class="${M("mop").run?"valve-open":"valve-shut"}">${open(M("mop").run)}</span>] ┬──▶ COOLER ──▶ FILTER ──▶ HDR ${S.lubeP.toFixed(2)} MPa (${S.brgT["LO-A"].toFixed(1)}°C)\n`+
+`         └─▶ [EOP-DC <span class="${M("eop").run?"valve-open":"valve-shut"}">${open(M("eop").run)}</span>] ┘         ▲ JOP:${open(M("jop").run)} (jacking @ low speed)\n`+
+`HDR ──▶ GEN-EE ${S.brgT["GEN-EE"].toFixed(1)}°C ──▶ GEN-TE ${S.brgT["GEN-TE"].toFixed(1)}°C ──▶ RG#4-#1 ──▶ THRUST ${S.brgT["THRUST"].toFixed(1)}°C ──▶ TB#2/TB#1 ──▶ DRAIN → TANK`;
+}
+/* ---- EXHAUST (SCREEN 3) 1:1 — 18x CT001..CT018 polar + side panels ---- */
+function rExhaust(root){
+  root.innerHTML=`<div class="grid" style="grid-template-columns:auto 1fr;"><div class="pnl"><div class="ph"><span>EXHAUST RADIAL TEMP (18x CT001..CT018)</span><span>CYAN LIVE</span></div>
+   <div class="pb"><canvas id="polar" width="430" height="430"></canvas><div style="color:#00FFFF;">◆ Cyan polygon = live CT profile · rings 200–800 °C · ±15°C variance</div>
+   <div class="kv"><span>TC MIN / MAX</span><b id="d-tcmm">---</b></div></div></div>
+   <div class="pnl"><div class="ph"><span>EXHAUST DATA</span><span>TRIP 620°C / SPREAD 90°C</span></div><div class="pb">
+   <div class="kv"><span>AVG EXH (18 CT)</span><b id="d-avg">---</b></div><div class="kv"><span>REF TEMP</span><b id="d-ref">---</b></div>
+   <div class="kv"><span>ALLOW SPREAD</span><b>90.0 °C</b></div><div class="kv"><span>SPREAD ACT</span><b id="d-spr">---</b></div>
+   <div class="kv"><span>SPEED</span><b id="d-spd2">---</b></div><div class="kv"><span>POWER</span><b id="d-mw3">---</b></div>
+   <div class="kv"><span>CPD</span><b id="d-cpd4">---</b></div><div class="kv"><span>IGV / FUEL</span><b id="d-igv2">---</b></div>
+   <div class="kv"><span>COMBUSTION</span><b id="d-comb">---</b></div>
+   <div id="tclist" style="font-family:'Courier New',monospace;font-size:11px;background:#000;color:#00FF00;border:2px inset #808080;height:190px;overflow:auto;padding:4px;"></div>
+   </div></div></div>`;
+}
+/* ---- VIBRATION (SCREEN 4) 1:1 — um bargraphs + mm thrust ---- */
+function rVib(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>VIBRATION (µm p-p) / THRUST (mm)</span><span>ALM 80µm · TRIP 100µm</span></div><div class="pb">
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">${dcard("VIB MAX","d-vmax","µm")}${dcard("VIB MAX CH","d-vmaxch","")}${dcard("SPEED","d-spd","rpm")}${dcard("THRUST #1","d-thr1","mm")}${dcard("THRUST #2","d-thr2","mm")}</div>
+   <div class="bars" id="vibbars"></div>
+   <div class="kv"><span>TRIP SET</span><b>100 µm · THRUST ±1.5 mm</b></div>
+   <div class="kv"><span>CRITICAL BAND ~4200 rpm</span><b id="d-crit">---</b></div></div></div>`;
+  barGroup("vibbars",[["G2-X","GEN2X",0,120,"","µm"],["G2-Y","GEN2Y",0,120,"","µm"],["G1-X","GEN1X",0,120,"","µm"],["G1-Y","GEN1Y",0,120,"","µm"],["RG4X","RG4X",0,120,"","µm"],["RG4Y","RG4Y",0,120,"","µm"],["RG3X","RG3X",0,120,"","µm"],["RG3Y","RG3Y",0,120,"","µm"],["RG2X","RG2X",0,120,"","µm"],["RG2Y","RG2Y",0,120,"","µm"],["RG1X","RG1X",0,120,"","µm"],["RG1Y","RG1Y",0,120,"","µm"],["TB2-X","TB2X",0,120,"","µm"],["TB2-Y","TB2Y",0,120,"","µm"],["TB1-X","TB1X",0,120,"","µm"],["TB1-Y","TB1Y",0,120,"","µm"]]);
+}
+/* ---- WS ---- */
+function rWS(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>WHEELSPACE TEMPS (°C)</span></div><div class="pb"><div class="bars" id="wsbars"></div></div></div>`;
+  barGroup("wsbars",[["1ST FWD","1FWD",0,600,"","°C"],["1ST AFT","1AFT",0,600,"","°C"],["2ND FWD","2FWD",0,600,"","°C"],["2ND AFT","2AFT",0,600,"","°C"],["3RD FWD","3FWD",0,600,"","°C"],["3RD AFT","3AFT",0,600,"","°C"]]);
+}
+/* ---- START CHECK ---- */
+function rStartCheck(root){
+  root.innerHTML=`<div id="ready-banner2" class="ready-big">---</div><div class="grid" id="scgrid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));"></div>`;
+}
+/* ---- TIMERS ---- */
+function rTimers(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>TIMERS & COUNTERS</span><span>EOH BASE 23076.5 h</span></div><div class="pb">
+   <div class="kv"><span>EOH (Equivalent Operating Hours)</span><b id="d-eoh">---</b></div>
+   <div class="kv"><span>TOTAL FIRED TIME</span><b id="d-fh">---</b></div>
+   <div class="kv"><span>FIRED ON GAS</span><b id="d-gh">---</b></div>
+   <div class="kv"><span>FIRED ON LIQUID</span><b id="d-lh">---</b></div>
+   <div class="kv"><span>FIRED STARTS</span><b id="d-fs">---</b></div>
+   <div class="kv"><span>TOTAL STARTS</span><b id="d-ts">---</b></div>
+   <div class="kv"><span>EMG TRIPS POST-IGN</span><b id="d-ep">---</b></div>
+   <div class="kv"><span>TOTAL EMG TRIPS</span><b id="d-et">---</b></div>
+   <div class="kv"><span>LAST COUNTER RESET</span><b id="d-lr">---</b></div>
+   <button class="sbtn" id="crst">COUNTER RESET</button></div></div>`;
+  root.querySelector("#crst").onclick=()=>{ S.emgPost=0; S.emgTotal=0; S.lastReset=new Date().toLocaleString(); render(); };
+}
+/* ---- TRIP ---- */
+function rTrip(root){ root.innerHTML=`<div class="pnl"><div class="ph"><span>TRIP MONITOR — GREEN NORMAL / RED TRIPPED</span></div><div class="pb"><div class="tripgrid" id="tripg"></div></div></div>`; }
+/* ---- REPORTS ---- */
+function repRows1(){
+  const vmax=Math.max(...Object.values(S.vib));
+  return [
+   ["20MBA10 CT101","LUBE OIL HDR TEMP A",()=>S.brgT["LO-A"],"°C"],["20MBA10 CT102","LUBE OIL HDR TEMP B",()=>S.brgT["LO-B"],"°C"],
+   ["20MBA10 CP101","LO HDR PRESS",()=>S.lubeP,"MPa"],["20MBR10 CT001..018 AVG","EXH TEMP AVG",()=>S.avgExh,"°C"],
+   ["20MBR10 CT001","EXH TC01",()=>S.tcs[0],"°C"],["20MBR10 CT009","EXH TC09",()=>S.tcs[8],"°C"],
+   ["20MBA10 CS101","SHAFT SPEED",()=>S.speed,"rpm"],["20MBA10 CS102","FREQUENCY",()=>S.freq,"Hz"],
+   ["20MAB10 CP101","CPD",()=>S.cpd,"MPa"],["20MBN10 CG101","FOFFD",()=>S.fuel,"%"],
+   ["20MAB10 CG102","IGV POSITION",()=>S.igv,"degA"],["20MAB10 CG103","IBH POSITION",()=>S.ibh,"%"],
+   ["20MKA10 CE101","GEN POWER",()=>S.MW,"MW"],["20MKA10 CE102","GEN VOLTAGE",()=>S.kV,"kV"],
+   ["20MKA10 CE103","GEN CURRENT",()=>S.Amp,"A"],["20MKA10 CE104","GEN MVAR",()=>S.MVAR,"MVAR"],
+   ["20MBA10 CV101","VIB MAX",()=>vmax,"um"],["20MBA10 CT201","BRG DRAIN TB#1",()=>S.brgT["TB-#1"],"°C"],
+   ["20MBA10 CT202","BRG DRAIN TB#2",()=>S.brgT["TB-#2"],"°C"],["20MBA10 CT203","BRG DRAIN RG#2",()=>S.brgT["RG-#2"],"°C"],
+   ["20MBA10 CT204","THRUST DRAIN",()=>S.brgT["THRUST"],"°C"],["20MBR10 CT501","WS 1ST FWD",()=>S.wsT["1FWD"],"°C"],
+   ["20MBR10 CT502","WS 2ND FWD",()=>S.wsT["2FWD"],"°C"],["20MBR10 CT503","WS 3RD AFT",()=>S.wsT["3AFT"],"°C"],
+  ];
+}
+function repRows2(){
+  return [
+   ["20MSV10 CT101","VENT INLET TEMP",()=>S.Tamb+2,"°C"],["20MSV10 CT102","ENCLOSURE TEMP",()=>S.Tamb+12+S.MW*0.2,"°C"],
+   ["20MBN10 CP201","GAS HDR PRESS",()=>S.gasP,"MPa"],["20MBN10 CG201","SRV POS",()=>S.srv,"%"],
+   ["20MBN10 CG202","GCV POS",()=>S.gcv,"%"],["20MAB10 CT301","COMP INLET",()=>S.Tamb,"°C"],
+   ["20MBV10 CT401","GEN BRG EE DRAIN",()=>S.brgT["GEN-EE"],"°C"],["20MBV10 CT402","GEN BRG TE DRAIN",()=>S.brgT["GEN-TE"],"°C"],
+   ["20MBA10 CV201","GEN BRG2 X",()=>S.vib["GEN2X"],"um"],["20MBA10 CV202","GEN BRG2 Y",()=>S.vib["GEN2Y"],"um"],
+   ["20MBA10 CV203","TURB BRG2 X",()=>S.vib["TB2X"],"um"],["20MBA10 CV204","TURB BRG2 Y",()=>S.vib["TB2Y"],"um"],
+   ["20MBA10 CZ301","THRUST POS #1",()=>1.13+Math.sin(noiseT)*0.02,"mm"],["20MBA10 CZ302","THRUST POS #2",()=>1.13-Math.sin(noiseT)*0.02,"mm"],
+   ["20MKA10 CH101","EOH",()=>S.eoh,"h"],["20MKA10 CH102","FIRED TIME",()=>S.firedHrs,"h"],
+   ["20MAB10 CF101","FUEL FLOW",()=>S.fuel*145,"kg/h"],["20MAB10 CP102","BARO PRESS",()=>1013,"hPa"],
+   ["20MKA10 CE105","POWER FACTOR",()=>S.PF,"-"],["20MBA10 CS103","OVERSPEED SET",()=>7788,"rpm"],
+   ["20MBR10 CT504","WS 1ST AFT",()=>S.wsT["1AFT"],"°C"],["20MBR10 CT505","WS 2ND AFT",()=>S.wsT["2AFT"],"°C"],
+   ["20MBR10 CT506","WS 3RD FWD",()=>S.wsT["3FWD"],"°C"],["20MBA10 CT205","BRG DRAIN RG#1",()=>S.brgT["RG-#1"],"°C"],
+  ];
+}
+function rRep(root,rows){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>DATA REPORT — LIVE</span><span>${rows.length} POINTS · 10 Hz</span></div><div class="pb" style="padding:0;">
+   <table class="rep"><tr><th>TAG ID</th><th>DESCRIPTION</th><th>READING</th><th>UNIT</th></tr>
+   ${rows.map((r,i)=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td id="rep-${i}">---</td><td>${r[3]}</td></tr>`).join("")}</table></div></div>`;
+  root._repRows=rows;
+}
+function rRep1(r){ rRep(r,repRows1()); } function rRep2(r){ rRep(r,repRows2()); }
+/* ---- OVERSPEED ---- */
+function rOver(root){
+  root.innerHTML=`<div class="pnl"><div class="ph"><span>OVERSPEED PROTECTION</span></div><div class="pb">
+   <div style="display:flex;gap:6px;flex-wrap:wrap;">${dcard("SPEED","d-spd3","rpm")}${dcard("TRIP SET","—","7788 rpm")}${dcard("% SPEED","d-pct","%")}</div>
+   <div class="kv"><span>MECH BOLT #1</span><b>HEALTHY</b></div><div class="kv"><span>MECH BOLT #2</span><b>HEALTHY</b></div>
+   <div class="kv"><span>ELEC PROBE A/B</span><b id="d-probe">---</b></div>
+   <button class="sbtn" id="tospd">SIMULATE OVERSPEED (+600 rpm)</button>
+   <button class="sbtn stop" id="tospdt">TEST TRIP LOGIC</button></div></div>`;
+  root.querySelector("#tospd").onclick=()=>{ S.speed+=600; log("OVERSPEED TEST: +600 rpm injected"); };
+  root.querySelector("#tospdt").onclick=()=>doTrip("OVERSPEED TEST");
+}
+
+/* ================= DYNAMIC UPDATE ================= */
+function updateScreenDyn(){
+  const g=id=>document.getElementById(id);
+  const set=(id,v)=>{const e=g(id); if(e)e.textContent=v;};
+  const vmax=Math.max(...Object.values(S.vib));
+  set("d-speed",Math.round(S.speed)+" rpm"); set("d-freq",S.freq.toFixed(2)+" Hz");
+  set("d-fuel",S.fuel.toFixed(1)+" %"); set("d-fuel2",S.fuel.toFixed(1)); set("d-fuel3",S.fuel.toFixed(1));
+  set("d-cpd",S.cpd.toFixed(3)+" MPa"); set("d-cpd2",S.cpd.toFixed(3)); set("d-cpd3",S.cpd.toFixed(3)); set("d-cpd4",S.cpd.toFixed(3));
+  set("d-exh",S.avgExh.toFixed(1)+" °C"); set("d-exh2",S.avgExh.toFixed(1)+" °C"); set("d-exh3",S.avgExh.toFixed(1));
+  set("d-dem",S.targetMW.toFixed(1)+" MW"); set("d-dem2",S.targetMW.toFixed(1));
+  set("d-mw",S.MW.toFixed(2)); set("d-mw2",S.MW.toFixed(2)); set("d-mw3",S.MW.toFixed(2)+" MW");
+  set("d-kv",S.kV.toFixed(2)); set("d-kv2",S.kV.toFixed(2)+" kV"); set("d-kv3",S.kV.toFixed(2)); set("d-kv4",S.kV.toFixed(2));
+  set("d-amp",Math.round(S.Amp)); set("d-amp2",Math.round(S.Amp)); set("d-amp3",Math.round(S.Amp));
+  set("d-hz",S.freq.toFixed(2)); set("d-hz2",S.freq.toFixed(2)); set("d-hz3",S.freq.toFixed(2));
+  set("d-mvar",S.MVAR.toFixed(2)); set("d-mvar2",S.MVAR.toFixed(2));
+  set("d-pf",S.PF.toFixed(2)); set("d-pf2",S.PF.toFixed(2));
+  set("d-brk",S.breaker?"CLOSED ●":"OPEN ○"); set("d-brk2",S.breaker?"CLOSED ●":"OPEN ○");
+  set("d-gcv",S.gcv.toFixed(1)); set("d-gcv2",S.gcv.toFixed(1)); set("d-srv",S.srv.toFixed(1)); set("d-srv2",S.srv.toFixed(1));
+  set("d-gasp",S.gasP.toFixed(2)); set("d-gasp2",S.gasP.toFixed(2));
+  set("d-ibh",S.ibh.toFixed(1)); set("d-igv",S.igv.toFixed(1)); set("d-igv2",S.igv.toFixed(1)+" degA");
+  set("d-amb",S.Tamb.toFixed(1)); set("d-lube",S.lubeP.toFixed(2)); set("d-loa",S.brgT["LO-A"].toFixed(1));
+  set("d-mop",M("mop").run?"RUN":"STOP"); set("d-eop",M("eop").run?"RUN":"STOP"); set("d-jop",M("jop").run?"RUN":"STOP");
+  set("d-vmax",vmax.toFixed(1)); set("d-spd",Math.round(S.speed)); set("d-spd2",Math.round(S.speed)+" rpm"); set("d-spd3",Math.round(S.speed));
+  set("d-pct",(S.speed/7260*100).toFixed(1)+" %"); set("d-probe",Math.round(S.speed)+" / "+Math.round(S.speed+2)+" rpm");
+  set("d-avg",S.avgExh.toFixed(1)+" °C"); set("d-ref",S.refExh.toFixed(1)+" °C"); set("d-spr",S.spread.toFixed(1)+" °C");
+  set("d-eoh",S.eoh.toFixed(1)+" h"); set("d-fh",S.firedHrs.toFixed(1)+" h"); set("d-gh",S.gasHrs.toFixed(1)+" h"); set("d-lh",S.liqHrs.toFixed(1)+" h");
+  set("d-fs",S.firedStarts); set("d-ts",S.totalStarts); set("d-ep",S.emgPost); set("d-et",S.emgTotal); set("d-lr",S.lastReset);
+  set("d-phase",((noiseT*30)%360).toFixed(0)+"°"); set("d-enct",(S.Tamb+12+S.MW*0.2).toFixed(1)+" °C");
+  const pc = S.breaker? (Math.sqrt(3)*S.kV*S.Amp*S.PF/1000):0;
+  set("d-pcalc","CALC "+pc.toFixed(2)+" MW vs METER "+S.MW.toFixed(2)+" MW ✓"); set("d-pcalc2","CALC "+pc.toFixed(2)+" MW vs METER "+S.MW.toFixed(2)+" MW ✓");
+  // P&ID
+  const pid=g("pid"); if(pid){ const run=S.fired, open=v=>v>1;
+    pid.innerHTML =
+`GAS HDR ${(S.gasP).toFixed(2)} MPa ──▶ [SRV <span class="${open(S.srv)?"valve-open":"valve-shut"}">${S.srv.toFixed(0)}% ${open(S.srv)?"OPEN":"SHUT"}</span>] ──▶ [GCV <span class="${open(S.gcv)?"valve-open":"valve-shut"}">${S.gcv.toFixed(0)}% ${open(S.gcv)?"OPEN":"SHUT"}</span>] ──▶ <span class="flowline">COMBUSTOR ${run?"🔥 FIRED":"○ UNFIRED"}</span>\n`+
+`AIR ${S.Tamb.toFixed(0)}°C ──▶ [IGV ${S.igv.toFixed(1)}°] ──▶ COMPRESSOR (CPD ${S.cpd.toFixed(2)} MPa) ──▶ ═══▶ TURBINE ${Math.round(S.speed)} rpm ──▶ EXH ${S.avgExh.toFixed(0)}°C\n`+
+`LUBE PUMP [MOP:${M("mop").run?"RUN":"STOP"}] [EOP:${M("eop").run?"RUN":"STOP"}] ──▶ HDR ${S.lubeP.toFixed(2)} MPa ──▶ BEARINGS\n`+
+`GEN ${S.MW.toFixed(2)} MW ──▶ [52G <span class="${S.breaker?"valve-open":"valve-shut"}">${S.breaker?"CLOSED":"OPEN"}</span>] ──▶ GRID 50.00 Hz`;}
+  const pid2=g("pid2"); if(pid2) pid2.innerHTML=(pid?pid.innerHTML:"").replace(/<[^>]+>/g,"");
+  // bars
+  Object.keys(S.brgT).forEach(k=>setBar(k,S.brgT[k],0,120,90,110));
+  Object.keys(S.vib).forEach(k=>setBar(k,S.vib[k],0,120,80,100));
+  Object.keys(S.wsT).forEach(k=>setBar(k,S.wsT[k],0,600,520,560));
+  // ready banners
+  const rdy=readyToStart()&&!S.tripped;
+  ["ready-banner","ready-banner2"].forEach(id=>{const e=g(id); if(e){e.textContent=S.tripped?("⛔ TRIPPED — "+S.tripCause):(rdy?"✔ READY TO START":"✖ NOT READY TO START"); e.className="ready-big "+(rdy&&!S.tripped?"ready-ok":"ready-no");}});
+  // startcheck grid
+  const sc=g("scgrid"); if(sc){ sc.innerHTML=""; startChecks().forEach(gr=>{ const d=document.createElement("div"); d.className="pnl";
+    d.innerHTML=`<div class="ph"><span>${gr.g}</span></div><div class="pb">`+gr.items.map(it=>lampHTML("● "+it[0],it[1])).join("")+`</div>`; sc.appendChild(d); }); }
+  // trip grid
+  const tg=g("tripg"); if(tg){ tg.innerHTML=""; tripMatrix().forEach(gr=>{ const d=document.createElement("div"); d.className="pnl";
+    d.innerHTML=`<div class="ph"><span>${gr.g}</span></div><div class="pb">`+gr.items.map(it=>`<div style="margin:2px 0;">${lampHTML((it[1]?"▼ TRIPPED ":"● ")+it[0],!it[1])}</div>`).join("")+`</div>`; tg.appendChild(d); }); }
+  // bearing P&ID + motors live + exhaust extras + vibration extras
+  const pb=g("pid-brg"); if(pb) pb.innerHTML=`<div id="pid">${bearingPidHTML()}</div>`;
+  if(g("mgrid")) updateMotorDyn();
+  const mn=Math.min(...S.tcs), mx2=Math.max(...S.tcs);
+  set("d-tcmm","MIN "+mn.toFixed(1)+" / MAX "+mx2.toFixed(1)+" °C");
+  set("d-igv2",S.igv.toFixed(1)+" degA / "+S.fuel.toFixed(1)+" %");
+  set("d-comb",S.fired?(S.spread>90?"⚠ HIGH SPREAD":"● NORMAL FIRED"):"○ UNFIRED");
+  let vch="—",mv=-1; Object.keys(S.vib).forEach(k=>{if(S.vib[k]>mv){mv=S.vib[k]; vch=k;}});
+  set("d-vmaxch",vch+" "+mv.toFixed(1));
+  set("d-thr1",(1.13+Math.sin(noiseT)*0.02).toFixed(2)); set("d-thr2",(1.13-Math.sin(noiseT)*0.02).toFixed(2));
+  set("d-crit",S.speed>3300&&S.speed<5100?"◉ IN CRITICAL BAND":"○ clear");
+  // tc list CT001..CT018 with deviation from avg
+  const tl=g("tclist"); if(tl) tl.innerHTML=S.tcs.map((t,i)=>{const dv=t-S.avgExh; return `20MBR10 CT${String(i+1).padStart(3,"0")} … ${t.toFixed(1).padStart(7)} °C  (${dv>=0?"+":""}${dv.toFixed(1)})`;}).join("<br>");
+  // reports
+  const spb=g("spb"); if(spb&&spb._repRows){ spb._repRows.forEach((r,i)=>{const e=g("rep-"+i); if(e){const v=r[2](); e.textContent=(typeof v==="number"?(Math.abs(v)>100?v.toFixed(0):v.toFixed(2)):v);}}); }
+  drawPolar(); drawSynch();
+}
+function drawPolar(){
+  const c=document.getElementById("polar"); if(!c) return; const x=c.getContext("2d");
+  const cx=215, cy=215, R=195; x.clearRect(0,0,430,430);
+  const t2r=(t)=>(R*(t-200)/600);
+  x.strokeStyle="#334455"; x.fillStyle="#9fd8ff"; x.font="10px monospace";
+  [200,300,400,500,600,700,800].forEach(t=>{ x.beginPath(); x.arc(cx,cy,t2r(t),0,7); x.stroke(); x.fillText(t+"°",cx+3,cy-t2r(t)-2); });
+  for(let i=0;i<18;i++){ const a=i/18*Math.PI*2-Math.PI/2;
+    x.strokeStyle="#223344"; x.beginPath(); x.moveTo(cx,cy); x.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R); x.stroke();
+    x.fillStyle="#FFFF00"; x.fillText("CT"+String(i+1).padStart(3,"0"),cx+Math.cos(a)*(R+4)-14,cy+Math.sin(a)*(R+4)+3); }
+  x.beginPath();
+  S.tcs.forEach((t,i)=>{ const a=i/18*Math.PI*2-Math.PI/2; const r=Math.max(2,t2r(Math.max(200,Math.min(800,t))));
+    const px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r; i?x.lineTo(px,py):x.moveTo(px,py); });
+  x.closePath(); x.fillStyle="rgba(0,255,255,.25)"; x.fill(); x.strokeStyle="#00FFFF"; x.lineWidth=2; x.stroke();
+  x.fillStyle="#00FFFF"; S.tcs.forEach((t,i)=>{ const a=i/18*Math.PI*2-Math.PI/2; const r=t2r(Math.max(200,Math.min(800,t)));
+    x.fillRect(cx+Math.cos(a)*r-2,cy+Math.sin(a)*r-2,4,4); });
+}
+function drawSynch(){
+  const c=document.getElementById("synch"); if(!c) return; const x=c.getContext("2d");
+  x.clearRect(0,0,300,120); x.strokeStyle="#333"; x.strokeRect(5,5,290,110);
+  x.strokeStyle="#00FF00"; x.beginPath(); x.moveTo(150,10); x.lineTo(150,110); x.stroke();
+  const slip=(S.freq-50)*12; const a=(noiseT*(2+slip))% (Math.PI*2);
+  const nx=150+Math.cos(a)*110, ny=60+Math.sin(a)*40;
+  x.fillStyle=S.breaker?"#FF0000":"#00FFFF"; x.beginPath(); x.arc(nx,ny,6,0,7); x.fill();
+  x.fillStyle="#FFFF00"; x.font="10px monospace"; x.fillText("SLIP "+(S.freq-50).toFixed(2)+" Hz",10,20);
+}
+
+/* ================= EVENTS ================= */
+document.getElementById("btn-trip").onclick=()=>doTrip("MANUAL");
+document.getElementById("btn-reset").onclick=()=>{ if(!S.tripped){clearAlarms(); log("MASTER RESET — latched alarms cleared");} else if(!isActiveAlarm("x")){/*still tripped*/} 
+  if(S.tripped && S.speed<100){ S.tripped=false; S.tripCause=""; S.phase="STOPPED"; M("turn").run=true; clearAlarms(); log("MASTER RESET — trip reset, turning gear ON"); }
+  else if(S.tripped){ log("RESET BLOCKED — shaft still rolling ("+Math.round(S.speed)+" rpm)"); } };
+document.querySelectorAll("#opline [data-op]").forEach(b=>b.onclick=()=>op(b.dataset.op));
+
+/* ================= BOOT ================= */
+alarm("F&G SYSTEM TROUBLE"); alarm("ANN.1GT1438_DOS");
+log("SIMULATOR BOOT — UNIT-20 H25 C32 model initialised");
+log("EOH 23076.5 h · Press AUX START to begin startup sequence");
+buildNav(); render();
+setInterval(tick,100);
+</script>
+</body>
+</html>
